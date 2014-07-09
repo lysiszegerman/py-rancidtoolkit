@@ -6,7 +6,6 @@ Juniper specific parsing of configuration files
 
 import sys
 import re
-from rancid import *
 
 
 def parseFile(filename):

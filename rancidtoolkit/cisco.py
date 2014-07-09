@@ -7,7 +7,6 @@ Cisco specific parsing of configuration files
 """
 
 import re
-from rancid import *
 
 
 def section(filename, section):
