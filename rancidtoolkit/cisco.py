@@ -107,7 +107,7 @@ def vrfs(filename):
             if not skipvrf:
                 reobj = re.match("(ip )?vrf forwarding (.*)", line)
                 if reobj:
-                    ret[intret] = reobj.group(1)
+                    ret[intret] = reobj.group(2)
                 else:
                     ret[intret] = ""
     return ret
