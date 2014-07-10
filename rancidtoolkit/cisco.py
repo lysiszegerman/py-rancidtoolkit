@@ -87,6 +87,32 @@ def interfaces(filename):
     return ret
 
 
+def vrfs(filename):
+    """find interfaces and matching vrfs from filename and return dict
+    with interface=>vrf """
+    parseresult = filterConfig(filename, "interface",
+                               "^interface|^(ip )?vrf forwarding")
+    ret = dict()
+    skipvrf = False
+    for sec in parseresult:
+        intret = ""
+        for line in sec:
+            reobj = re.match("interface (.*)", line)
+            if reobj:
+                skipvrf = False
+                if re.match("Vlan", reobj.group(1)):
+                    skipvrf = True
+                else:
+                    intret = reobj.group(1)
+            if not skipvrf:
+                reobj = re.match("(ip )?vrf forwarding (.*)", line)
+                if reobj:
+                    ret[intret] = reobj.group(1)
+                else:
+                    ret[intret] = ""
+    return ret
+
+
 def addresses(filename, with_subnetsize=None):
     """find ip addresses configured on all interfaces from filename and return
     dict with interface=>(ip=>address, ipv6=>address)"""

@@ -221,6 +221,23 @@ class Rancid(object):
         else:
             return {"error": "Unknown type " + routertype + " in " + filename}
 
+    def interfaceVrfList(self, device):
+        """ returns a dict {interface:{"vrf": name}} for
+        all interfaces of device """
+        try:
+            (filename, routertype) = self.getFilename(device)
+        except:
+            return {"error": "Cannot find device " + device +
+                    " in rancid configuration."}
+
+        if routertype == "cisco":
+            return cisco.vrfs(filename)
+        # no support for discovering Juniper VRFs #FIXME
+        # elif routertype == "juniper":
+        #   return juniper.addresses(filename, with_subnetsize)
+        else:
+            return {"error": "Unknown type " + routertype + " in " + filename}
+
     def printFilterSection(self, filename, filterstr):
         """ filters the config for filename according to filterstr and prints
         it in a nice way """
