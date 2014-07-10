@@ -203,7 +203,7 @@ class Rancid(object):
         else:
             return {"error": "Unknown type " + routertype + " in " + filename}
 
-    def interfaceAddressList(self, device):
+    def interfaceAddressList(self, device, with_subnetsize=None):
         """ returns a dict {interface:{"ip": address, "ipv6": address}} for
         all interfaces of device """
         try:
@@ -213,11 +213,11 @@ class Rancid(object):
                     " in rancid configuration."}
 
         if routertype == "cisco":
-            return cisco.addresses(filename)
+            return cisco.addresses(filename, with_subnetsize)
         elif routertype == "force10":
-            return cisco.addresses(filename)
+            return cisco.addresses(filename, with_subnetsize)
         elif routertype == "juniper":
-            return juniper.addresses(filename)
+            return juniper.addresses(filename, with_subnetsize)
         else:
             return {"error": "Unknown type " + routertype + " in " + filename}
 

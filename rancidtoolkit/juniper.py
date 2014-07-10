@@ -193,7 +193,7 @@ def findAddress(configtree):
     return ""
 
 
-def addresses(filename):
+def addresses(filename, with_subnetsize=None):
     """ find interfaces and matching ip addresses from filename and returns a
      dict interface=>(ip=>address, ipv6=>address)
     """
@@ -215,12 +215,19 @@ def addresses(filename):
                     if addr:
                         if not intret in ret:
                             ret[intret] = dict()
-                        ret[intret].update({'ip': addr.split("/")[0]})
+                        if with_subnetsize:
+                            ret[intret].update({'ip': addr.split(" ")[0]})
+                        else:
+                            ret[intret].update({'ip': addr.split("/")[0]})
+
                 # family inet
                 if "family inet6" in unittree:
                     addr = findAddress(unittree['family inet6'])
                     if addr:
                         if not intret in ret:
                             ret[intret] = dict()
-                        ret[intret].update({'ipv6': addr.split("/")[0]})
+                        if with_subnetsize:
+                            ret[intret].update({'ipv6': addr.split(" ")[0]})
+                        else:
+                            ret[intret].update({'ipv6': addr.split("/")[0]})
     return ret

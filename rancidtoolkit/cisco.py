@@ -6,8 +6,8 @@
 Cisco specific parsing of configuration files
 """
 
+import ipaddr
 import re
-
 
 def section(filename, section):
     """returns a list with all configuration within section from filename"""
@@ -87,7 +87,7 @@ def interfaces(filename):
     return ret
 
 
-def addresses(filename):
+def addresses(filename, with_subnetsize=None):
     """find ip addresses configured on all interfaces from filename and return
     dict with interface=>(ip=>address, ipv6=>address)"""
     parseresult = filterConfig(filename, "interface",
@@ -103,10 +103,18 @@ def addresses(filename):
                 # FIXME: exclude interfaces with shutdown configured
                 reobj = re.match("(ip|ipv6) address (.*)", line)
                 if reobj:
+                    afi = reobj.group(1)
+                    if afi == "ip" and with_subnetsize:
+                        ip = reobj.group(2).split(" ")[0]
+                        hostmask = reobj.group(2).split(" ")[1]
+                        address = str(ipaddr.IPv4Network(ip + "/" + hostmask))
+                    elif afi == "ip" and with_subnetsize:
+                        address = re.split('[ ]', reobj.group(2))[0]
+                    else:
+                        address = re.split('[\/ ]', reobj.group(2))[0]
                     if not intret in ret:
                         ret[intret] = dict()
-                    ret[intret].update({reobj.group(1):
-                                        re.split('[\/ ]', reobj.group(2))[0]})
+                    ret[intret].update({afi: address})
     return ret
 
 
