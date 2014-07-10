@@ -106,9 +106,11 @@ def addresses(filename, with_subnetsize=None):
                     afi = reobj.group(1)
                     if afi == "ip" and with_subnetsize:
                         ip = reobj.group(2).split(" ")[0]
+                        if ipaddr.IPAddress(ip).version is not 4:
+                            continue
                         hostmask = reobj.group(2).split(" ")[1]
                         address = str(ipaddr.IPv4Network(ip + "/" + hostmask))
-                    elif afi == "ip" and with_subnetsize:
+                    elif afi == "ipv6" and with_subnetsize:
                         address = re.split('[ ]', reobj.group(2))[0]
                     else:
                         address = re.split('[\/ ]', reobj.group(2))[0]
