@@ -195,11 +195,11 @@ class Rancid(object):
                     " in rancid configuration."}
 
         if routertype == "cisco":
-            return rancidtoolkit.cisco.interfaces(filename)
+            return cisco.interfaces(filename)
         elif routertype == "force10":
-            return rancidtoolkit.cisco.interfaces(filename)
+            return cisco.interfaces(filename)
         elif routertype == "juniper":
-            return rancidtoolkit.juniper.interfaces(filename)
+            return juniper.interfaces(filename)
         else:
             return {"error": "Unknown type " + routertype + " in " + filename}
 
