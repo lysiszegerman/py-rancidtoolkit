@@ -10,8 +10,8 @@ independant calling of functions
 import sys
 import re
 import os.path
-import rancidtoolkit.cisco
-import rancidtoolkit.juniper
+from . import cisco
+from . import juniper
 
 
 class RancidConfig(object):
@@ -158,11 +158,11 @@ class Rancid(object):
         intlist = dict()
 
         if routertype == "cisco":
-            intlist = rancidtoolkit.cisco.interfaces(filename)
+            intlist = cisco.interfaces(filename)
         elif routertype == "force10":
-            intlist = rancidtoolkit.cisco.interfaces(filename)
+            intlist = cisco.interfaces(filename)
         elif routertype == "juniper":
-            intlist = rancidtoolkit.juniper.interfaces(filename)
+            intlist = juniper.interfaces(filename)
         else:
             print "Unknown type", routertype, "in", filename
 
@@ -195,15 +195,15 @@ class Rancid(object):
                     " in rancid configuration."}
 
         if routertype == "cisco":
-            return rancidtoolkit.cisco.interfaces(filename)
+            return cisco.interfaces(filename)
         elif routertype == "force10":
-            return rancidtoolkit.cisco.interfaces(filename)
+            return cisco.interfaces(filename)
         elif routertype == "juniper":
-            return rancidtoolkit.juniper.interfaces(filename)
+            return juniper.interfaces(filename)
         else:
             return {"error": "Unknown type " + routertype + " in " + filename}
 
-    def interfaceAddressList(self, device):
+    def interfaceAddressList(self, device, with_subnetsize=None):
         """ returns a dict {interface:{"ip": address, "ipv6": address}} for
         all interfaces of device """
         try:
@@ -213,11 +213,28 @@ class Rancid(object):
                     " in rancid configuration."}
 
         if routertype == "cisco":
-            return rancidtoolkit.cisco.addresses(filename)
+            return cisco.addresses(filename, with_subnetsize)
         elif routertype == "force10":
-            return rancidtoolkit.cisco.addresses(filename)
+            return cisco.addresses(filename, with_subnetsize)
         elif routertype == "juniper":
-            return rancidtoolkit.juniper.addresses(filename)
+            return juniper.addresses(filename, with_subnetsize)
+        else:
+            return {"error": "Unknown type " + routertype + " in " + filename}
+
+    def interfaceVrfList(self, device):
+        """ returns a dict {interface:{"vrf": name}} for
+        all interfaces of device """
+        try:
+            (filename, routertype) = self.getFilename(device)
+        except:
+            return {"error": "Cannot find device " + device +
+                    " in rancid configuration."}
+
+        if routertype == "cisco":
+            return cisco.vrfs(filename)
+        # no support for discovering Juniper VRFs #FIXME
+        # elif routertype == "juniper":
+        #   return juniper.addresses(filename, with_subnetsize)
         else:
             return {"error": "Unknown type " + routertype + " in " + filename}
 
@@ -225,16 +242,15 @@ class Rancid(object):
         """ filters the config for filename according to filterstr and prints
         it in a nice way """
         if filename[1] == "juniper":
-            sections = rancidtoolkit.juniper.section(filename[0], filterstr)
-            rancidtoolkit.juniper.printSection(sections)
+            sections = juniper.section(filename[0], filterstr)
+            juniper.printSection(sections)
         else:
-            sections = rancidtoolkit.cisco.section(filename[0],
-                                                 ".* ".join(filterstr))
-            rancidtoolkit.cisco.printSection(sections)
+            sections = cisco.section(filename[0], ".* ".join(filterstr))
+            cisco.printSection(sections)
 
     def printSection(self, vendor, section):
         """ prints section in a nice way """
         if vendor == "juniper":
-            rancidtoolkit.juniper.printSection(section)
+            juniper.printSection(section)
         else:
-            rancidtoolkit.cisco.printSection(section)
+            cisco.printSection(section)

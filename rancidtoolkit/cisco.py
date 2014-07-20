@@ -6,9 +6,8 @@
 Cisco specific parsing of configuration files
 """
 
+import ipaddr
 import re
-from rancid import *
-
 
 def section(filename, section):
     """returns a list with all configuration within section from filename"""
@@ -88,7 +87,33 @@ def interfaces(filename):
     return ret
 
 
-def addresses(filename):
+def vrfs(filename):
+    """find interfaces and matching vrfs from filename and return dict
+    with interface=>vrf """
+    parseresult = filterConfig(filename, "interface",
+                               "^interface|^(ip )?vrf forwarding")
+    ret = dict()
+    skipvrf = False
+    for sec in parseresult:
+        intret = ""
+        for line in sec:
+            reobj = re.match("interface (.*)", line)
+            if reobj:
+                skipvrf = False
+                if re.match("Vlan", reobj.group(1)):
+                    skipvrf = True
+                else:
+                    intret = reobj.group(1)
+            if not skipvrf:
+                reobj = re.match("(ip )?vrf forwarding (.*)", line)
+                if reobj:
+                    ret[intret] = reobj.group(2)
+                else:
+                    ret[intret] = ""
+    return ret
+
+
+def addresses(filename, with_subnetsize=None):
     """find ip addresses configured on all interfaces from filename and return
     dict with interface=>(ip=>address, ipv6=>address)"""
     parseresult = filterConfig(filename, "interface",
@@ -104,10 +129,20 @@ def addresses(filename):
                 # FIXME: exclude interfaces with shutdown configured
                 reobj = re.match("(ip|ipv6) address (.*)", line)
                 if reobj:
+                    afi = reobj.group(1)
+                    if afi == "ip" and with_subnetsize:
+                        ip = reobj.group(2).split(" ")[0]
+                        if ipaddr.IPAddress(ip).version is not 4:
+                            continue
+                        hostmask = reobj.group(2).split(" ")[1]
+                        address = str(ipaddr.IPv4Network(ip + "/" + hostmask))
+                    elif afi == "ipv6" and with_subnetsize:
+                        address = re.split('[ ]', reobj.group(2))[0]
+                    else:
+                        address = re.split('[\/ ]', reobj.group(2))[0]
                     if not intret in ret:
                         ret[intret] = dict()
-                    ret[intret].update({reobj.group(1):
-                                        re.split('[\/ ]', reobj.group(2))[0]})
+                    ret[intret].update({afi: address})
     return ret
 
 
